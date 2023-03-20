@@ -1,0 +1,72 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+  <h1>{{ listing.title }}</h1>
+  <p>{{ listing.description }}</p>
+  {% if listing.image_url %}
+    <img src="{{ listing.image_url }}" alt="{{ listing.title }}" height="400px">
+  {% endif %}
+  <h4>Current Price: ${{ listing.starting_bid }}</h4>
+  {% if user.is_authenticated %}
+  {% if user == listing.user %}
+      <p>You are the owner of this listing.</p>
+  {% else %}
+
+  {% if in_watchlist %}
+  <form method="POST" action="{% url 'remove_from_watchlist' listing_id=listing.id %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-warning">Remove from Watchlist</button>
+  </form>
+  {% else %}
+  <form method="POST" action="{% url 'add_to_watchlist' listing_id=listing.id %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-success">Add to Watchlist</button>
+  </form>
+  {% endif %}
+
+  
+  <br><br>
+  <form method="POST" action="{% url 'bid' listing_id=listing.id %}">
+    {% csrf_token %}
+    <label for="bid_amount">Enter bid:</label>
+    <input type="number" id="bid_amount" name="bid_amount" value="{{ bid_amount }}">
+    <button type="submit">Place Bid</button>
+  </form>
+  {% if listing.bids.all %}
+  <h4>Bids:</h4>
+  <ul>
+    {% for bid in listing.bids.all %}
+      <li>{{ bid.bidder.username }} bid ${{ bid.amount }} on {{ bid.created_at }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+  <br><br>
+  {% endif %}
+  {% endif %}
+  <h3>Comments</h3>
+  {% if user.is_authenticated %}
+    <form action="{% url 'addComment' listing_id=listing.id %}" method="POST">
+      {% csrf_token %}
+      <label for="newComment">Add a comment:</label>
+          <input type="text" id="newComment" name="newComment" placeholder="Add New Comment">
+      <button type="submit" class="btn btn-warning">Add</button>
+    </form>
+  {% endif %}
+  {% if comments %}
+    <ul class="list-group">
+        {% for comment in comments %}
+          <li class="list-group-item">
+            {{ comment.text }}
+            <br/>
+            <p> {{ comment.commenter }} - {{ comment.created_at }}</p>
+          </li>
+        {% endfor %}
+  </ul>
+{% else %}
+  <p>No comments yet.</p>
+{% endif %}
+
+
+
+{% endblock %}
